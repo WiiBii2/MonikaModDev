@@ -39,6 +39,30 @@ init 10 python in mas_brbs:
         brb_ev = store.mas_getEV(brb_evl)
         return brb_ev and brb_ev.timePassedSinceLastSeen_dt(idle_time)
 
+# quips for generic goodbye that doesn't require any special text (affectionate)
+    def get_goodbye_quip():
+    
+    return renpy.substitute(renpy.random.choice([
+            _(m 1hub "Hurry back, I'll be waiting here for you~"),
+            _(m 1hsb "Don't let me keep you!"),
+            _(m 6hub "Don't dawdle!"),
+        ]))
+
+# quips for normal aff goodbye
+    def get_goodbye_quip_nor():
+
+    return renpy.substitute(renpy.random.choice([
+            _(m 1hub "Hurry back, [player]!"),
+            _(m 1eua "I'll be waiting!"),
+        ]))
+# quips for the first part of a goodbye
+    def get_goodbye():
+
+    renpy.substitute(renpy.random.choice([
+            _(m 1eua "Oh, alright!"),
+            _(m 1eub "Okay!"),
+        ]))
+
 # label to use if we want to get back into idle from a callback
 label mas_brb_back_to_idle:
     # sanity check
@@ -91,6 +115,9 @@ init 5 python:
 
 label monika_brb_idle:
     if mas_isMoniAff(higher=True):
+        $ goodbye_quip = get_goodbye_quip()
+        $ goodbye_quip_nor = get_goodbye_quip_nor()
+        $ goodbye_okay = get_goodbye() 
         m 1eua "Alright, [player]."
 
         show monika 1eta at t21
@@ -108,16 +135,12 @@ label monika_brb_idle:
             renpy.say(m, "Doing anything specific?", interact=False)
         call screen mas_gen_scrollable_menu(brb_reason_options, mas_ui.SCROLLABLE_MENU_TALL_AREA, mas_ui.SCROLLABLE_MENU_XALIGN)
         show monika at t11
-
-        if _return:
-            m 1eua "Oh alright.{w=0.2} {nw}"
-            extend 3hub "Hurry back, I'll be waiting here for you~"
-
-        else:
-            m 1hub "Hurry back, I'll be waiting here for you~"
+            [goodbye_okay]
+            [goodbye_quip]
 
     elif mas_isMoniNormal(higher=True):
-        m 1hub "Hurry back, [player]!"
+        [goodbye_okay]
+        [goodbye_quip_nor]
 
     elif mas_isMoniDis(higher=True):
         m 2rsc "Oh...{w=0.5}okay."
@@ -132,11 +155,32 @@ label monika_brb_idle:
     return "idle"
 
 label monika_brb_idle_callback:
+    def wb_callback():
+    return renpy.substitute(renpy.random.choice([
+        _(m 1hub "Welcome back, [player]. I missed you~"
+          m 1eua "[wb_quip]"),
+        _(m 1eub "There you are! {w=0.2} {nw}"
+          extend 1hub "I was starting to get bored!"
+          #May change to 'miss you' or something a bit more passive in the future
+          m 1eua "[wb_quip]"),
+    ]))
+
+    $ wb_quip = mas_brbs.get_wb_quip()
+    $ wb_dialogue = wb_callback
     $ wb_quip = mas_brbs.get_wb_quip()
 
     if mas_isMoniAff(higher=True):
-        m 1hub "Welcome back, [player]. I missed you~"
-        m 1eua "[wb_quip]"
+        $reponse = renpy.random.randint(1,10)
+        if response == 10:
+           m 5hubsa "{i}Hmm hmm hmm...{/i} {w=2} {nw}"
+           extend 5wuo "Ah! {w=0.25}{nw}"
+           extend 5wubld "[player]!"
+           m 6lubld "You surprised me!"
+           m 6hkblb "I was kind of deep in thought."
+           m 6gkblb "Umm... {w=0.25} {nw}"
+           extend 6ekblb "[wb_quip]"
+       else:
+           [wb_dialogue]
 
     elif mas_isMoniNormal(higher=True):
         m 1hub "Welcome back, [player]!"
